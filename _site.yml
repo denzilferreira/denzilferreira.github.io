@@ -3,9 +3,16 @@ output_dir: "."
 navbar:
   title: "Denzil Ferreira"
   right:
-  - text: "Home"
-    icon: fa-home
+  - icon: fa-home
     href: index.html
+  - icon: ion-social-twitter
+    href: https://twitter.com/denzilferreira
+  - icon: fa-graduation-cap
+    href: https://scholar.google.fi/citations?user=d4rhcDAAAAAJ
+  - icon: fa-code
+    href: code.html
+  - icon: fa-linkedin
+    href: https://www.linkedin.com/in/denzilferreira
 output:
   html_document:
     theme: cosmo
