@@ -1,11 +1,12 @@
 name: "denzilferreira"
+output_dir: "."
 navbar:
   title: "Denzil Ferreira"
-  left:
+  right:
   - text: "Home"
-  href: index.html
-  - text: "Researcher"
-  href: researcher.html
+    icon: fa-home
+    href: index.html
 output:
   html_document:
-  theme: cosmo
+    theme: cosmo
+    highlight: textmate
