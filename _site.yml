@@ -1,0 +1,11 @@
+name: "denzilferreira"
+navbar:
+  title: "Denzil Ferreira"
+  left:
+  - text: "Home"
+  href: index.html
+  - text: "Researcher"
+  href: researcher.html
+output:
+  html_document:
+  theme: cosmo
