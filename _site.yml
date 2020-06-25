@@ -1,7 +1,8 @@
 name: "denzilferreira"
 output_dir: "."
 navbar:
-  title: "Denzil Ferreira"
+  title: "Denzil Ferreira - tinkerer, engineer, scientist."
+  type: inverse
   right:
   - icon: fa-home
     href: index.html
@@ -10,7 +11,7 @@ navbar:
   - icon: fa-graduation-cap
     href: https://scholar.google.fi/citations?user=d4rhcDAAAAAJ
   - icon: fa-code
-    href: code.html
+    href: https://github.com/denzilferreira
   - icon: fa-linkedin
     href: https://www.linkedin.com/in/denzilferreira
 output:
