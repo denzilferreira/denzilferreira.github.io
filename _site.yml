@@ -1,7 +1,7 @@
 name: "denzilferreira"
 output_dir: "."
 navbar:
-  title: "Denzil Ferreira - tinkerer, engineer, scientist."
+  title: "I'm tinkerer, engineer & scientist."
   type: inverse
   right:
   - icon: fa-home
