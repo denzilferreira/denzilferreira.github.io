@@ -1,20 +1,14 @@
 name: "denzilferreira"
 output_dir: "."
-navbar:
-  title: "I'm tinkerer, engineer & scientist."
-  type: inverse
-  right:
-  - icon: fa-home
-    href: index.html
-  - icon: ion-social-twitter
-    href: https://twitter.com/denzilferreira
-  - icon: fa-graduation-cap
-    href: https://scholar.google.fi/citations?user=d4rhcDAAAAAJ
-  - icon: fa-code
-    href: https://github.com/denzilferreira
-  - icon: fa-linkedin
-    href: https://www.linkedin.com/in/denzilferreira
 output:
-  html_document:
-    theme: flatly
-    highlight: textmate
+  flexdashboard::flex_dashboard:
+    css: style.css
+    favicon: favicon.ico
+    theme: readable
+    navbar:
+      - { title: "Home", href: index.html, align: right, icon: fa-home }
+      - { title: "Contact", href: "mailto:ferreiradenzil@gmail.com", align: right, icon: fa-envelope }
+    hightlight: textmate
+    include:
+      before_body: header.html
+      after_body: footer.html

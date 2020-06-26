@@ -1,9 +1,19 @@
 ---
-title: "Denzil Ferreira"
-output: 
-  html_document:
-    includes:
-        before_body: header.html
-        after_body: footer.html
+title: "Hi, I'm Denzil Ferreira"
 ---
 
+Column
+------------------------
+
+### { .builder }
+
+```{r child = 'engineer.Rmd'}
+```
+
+Column
+------------------------
+
+### { .scholar }
+
+```{r child = 'scientist.Rmd'}
+```
