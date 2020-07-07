@@ -1,0 +1,54 @@
+---
+title: "Topics"
+---
+
+### Topics
+
+```{r}
+library(jsonlite)
+ 
+userID = "5449471" #zotero denzilferreira userID for API calls
+api_version = 3
+zotero_api = "https://api.zotero.org"
+origin_endpoint = "/users/"
+publications_endpoint = "/publications/items"
+tags_endpoint = "/tags"
+format="json"
+sort="?sort=date&direction=desc&limit=100&start=%d"
+
+papersAPI = paste0(zotero_api, origin_endpoint, userID, publications_endpoint, sort)
+
+start = 0
+papers = fromJSON(sprintf(papersAPI, start), flatten = TRUE)
+papers = papers[which(papers$data.title!="" & papers$data.itemType!="attachment"),]
+
+if (nrow(papers)==100) { #we may have more than 100 papers
+  repeat {
+    start = start + 100 #next 100
+    paperPile = fromJSON(sprintf(papersAPI, start), flatten = TRUE)
+    paperPile = paperPile[which(paperPile$data.title!="" & paperPile$data.itemType!="attachment"),]
+    if (is.null(nrow(paperPile)) == TRUE) { #we are done with papers
+      break
+    } else {
+      rbind(papers, paperPile) #add to the dataframe  
+    }
+  }
+}
+
+library(dplyr)
+library(tm)
+text = papers$data.abstractNote
+docs = Corpus(VectorSource(text))
+
+docs = docs %>% tm_map(removeNumbers) %>% tm_map(removePunctuation) %>% tm_map(stripWhitespace)
+docs = tm_map(docs, content_transformer(tolower))
+docs = tm_map(docs, removeWords, stopwords("english"))
+
+dtm = TermDocumentMatrix(docs) 
+matrix = as.matrix(dtm) 
+words = sort(rowSums(matrix),decreasing=TRUE) 
+df = data.frame(word = names(words),freq=words)
+
+library(wordcloud)
+wordcloud(words = df$word, freq=df$freq, min.freq = 5, max.words = 200, random.order = FALSE, rot.per=0.35, colors=brewer.pal(8, "Dark2"))
+```

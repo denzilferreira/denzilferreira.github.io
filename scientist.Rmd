@@ -1,0 +1,40 @@
+---
+title: "Scientist"
+---
+
+### Publications
+
+```{r}
+library(jsonlite)
+library(DT)
+
+userID = "5449471" #zotero denzilferreira userID for API calls
+api_version = 3
+zotero_api = "https://api.zotero.org"
+origin_endpoint = "/users/"
+publications_endpoint = "/publications/items"
+tags_endpoint = "/tags"
+format="json"
+sort="?sort=date&direction=desc&limit=100&start=%d"
+
+papersAPI = paste0(zotero_api, origin_endpoint, userID, publications_endpoint, sort)
+
+start = 0
+papers = fromJSON(sprintf(papersAPI, start), flatten = TRUE)
+papers = papers[which(papers$data.title!="" & papers$data.itemType!="attachment"),]
+
+if (nrow(papers)==100) { #we may have more than 100 papers
+  repeat {
+    start = start + 100 #next 100
+    paperPile = fromJSON(sprintf(papersAPI, start), flatten = TRUE)
+    paperPile = paperPile[which(paperPile$data.title!="" & paperPile$data.itemType!="attachment"),]
+    if (is.null(nrow(paperPile)) == TRUE) { #we are done with papers
+      break
+    } else {
+      rbind(papers, paperPile) #add to the dataframe  
+    }
+  }
+}
+
+datatable(data.frame(papers$data.title, papers$data.date), colnames = c("Title", "Year"), fillContainer = TRUE, editable = FALSE)
+```
