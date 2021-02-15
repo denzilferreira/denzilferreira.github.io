@@ -1,0 +1,3 @@
+User-agent: *
+Disallow:
+Sitemap: https://denzilferreira.github.io/denzilferreira.github.io/sitemap.xml

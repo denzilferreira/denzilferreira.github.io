@@ -1,0 +1,27 @@
+{
+    "version": "https://jsonfeed.org/version/1",
+    "title": "Denzil Ferreira - Data Scientist, Software Engineer, Usability Expert",
+    "description": "",
+    "home_page_url": "https://denzilferreira.github.io/denzilferreira.github.io",
+    "feed_url": "https://denzilferreira.github.io/denzilferreira.github.io/feed.json",
+    "user_comment": "",
+    "author": {
+        "name": "Denzil Ferreira"
+    },
+    "items": [
+        {
+            "id": "https://denzilferreira.github.io/denzilferreira.github.io/new-beginnings.html",
+            "url": "https://denzilferreira.github.io/denzilferreira.github.io/new-beginnings.html",
+            "title": "New beginnings",
+            "summary": "This is a test.",
+            "content_html": "<p>This is a test.</p>",
+            "author": {
+                "name": "Denzil Ferreira"
+            },
+            "tags": [
+            ],
+            "date_published": "2021-02-15T18:26:02+02:00",
+            "date_modified": "2021-02-15T18:26:02+02:00"
+        }
+    ]
+}

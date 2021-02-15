@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title>Denzil Ferreira - Data Scientist, Software Engineer, Usability Expert</title>
+    <link href="https://denzilferreira.github.io/denzilferreira.github.io/feed.xml" rel="self" />
+    <link href="https://denzilferreira.github.io/denzilferreira.github.io" />
+    <updated>2021-02-15T18:26:02+02:00</updated>
+    <author>
+        <name>Denzil Ferreira</name>
+    </author>
+    <id>https://denzilferreira.github.io/denzilferreira.github.io</id>
+
+    <entry>
+        <title>New beginnings</title>
+        <author>
+            <name>Denzil Ferreira</name>
+        </author>
+        <link href="https://denzilferreira.github.io/denzilferreira.github.io/new-beginnings.html"/>
+        <id>https://denzilferreira.github.io/denzilferreira.github.io/new-beginnings.html</id>
+
+        <updated>2021-02-15T18:26:02+02:00</updated>
+            <summary>
+                <![CDATA[
+                    This is a test.
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                <p>This is a test.</p>
+            ]]>
+        </content>
+    </entry>
+</feed>
