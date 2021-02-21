@@ -1,0 +1,61 @@
+baseURL: https://www.denzilferreira.com
+languageCode: en
+DefaultContentLanguage: en
+title: Denzil Ferreira - Digital Journal & Notebook
+theme: anatole
+summarylength: 10
+enableEmoji: yes
+enableRobotsTXT: yes
+pygmentsUseClasses: yes
+pygmentsCodeFences: yes
+pygmentsCodefencesGuessSyntax: yes
+params:
+  author: Denzil Ferreira
+  customCss: []
+  customJs: []
+  description: Computer & Data Scientist, Software Engineer
+  doNotLoadAnimations: no
+  favicon: favicons/
+  images: images/site-feature-image.png
+  keywords: ''
+  mainSections: post
+  math:
+    enable: no
+    use: katex
+  profilePicture: images/profile.jpg
+  simpleAnalytics: {}
+  socialIcons:
+    - icon: fab fa-linkedin
+      title: LinkedIn
+      url: https://www.linkedin.com/in/denzilferreira
+    - icon: fab fa-github
+      title: GitHub
+      url: https://github.com/denzilferreira
+    - icon: fab fa-twitter
+      title: Twitter
+      url: https://twitter.com/denzilferreira
+    - icon: fas fa-book-reader
+      title: Scholar
+      url: https://scholar.google.fi/citations?user=d4rhcDAAAAAJ
+    - icon: fas fa-envelope
+      title: e-mail
+      url: mailto:ferreiradenzil@gmail.com
+  title: Denzil Ferreira
+menu:
+  main:
+    - identifier: home
+      name: Home
+      url: /
+      weight: 100
+    - identifier: posts
+      name: Posts
+      url: /post/
+      weight: 200
+    - identifier: about
+      name: About
+      url: /about/
+      weight: 300
+    - identifier: contact
+      name: Contact
+      url: /contact/
+      weight: 400
