@@ -17,7 +17,7 @@ params:
   doNotLoadAnimations: no
   favicon: favicons/
   images: images/site-feature-image.png
-  keywords: ''
+  keywords: 'data scientist, software engineer, computer science, oulu, finland'
   mainSections: post
   math:
     enable: no
@@ -48,14 +48,6 @@ menu:
       url: /
       weight: 100
     - identifier: posts
-      name: Posts
+      name: Journal
       url: /post/
       weight: 200
-    - identifier: about
-      name: About
-      url: /about/
-      weight: 300
-    - identifier: contact
-      name: Contact
-      url: /contact/
-      weight: 400

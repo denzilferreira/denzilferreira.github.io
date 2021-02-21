@@ -5,7 +5,7 @@ aliases:
 - blog
 - showcase
 - docs
-author: Hugo Authors
+author: Denzil Ferreira
 tags:
 - index
 title: Posts
