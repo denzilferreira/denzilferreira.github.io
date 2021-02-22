@@ -4,11 +4,11 @@ DefaultContentLanguage: en
 title: Denzil Ferreira - Digital Journal & Notebook
 theme: anatole
 summarylength: 10
-enableEmoji: yes
-enableRobotsTXT: yes
-pygmentsUseClasses: yes
-pygmentsCodeFences: yes
-pygmentsCodefencesGuessSyntax: yes
+enableEmoji: true
+enableRobotsTXT: true
+pygmentsUseClasses: true
+pygmentsCodeFences: true
+pygmentsCodefencesGuessSyntax: true
 params:
   author: Denzil Ferreira
   customCss: []
@@ -20,7 +20,7 @@ params:
   keywords: 'data scientist, software engineer, computer science, oulu, finland'
   mainSections: post
   math:
-    enable: no
+    enable: true
     use: katex
   profilePicture: images/profile.jpg
   simpleAnalytics: {}
