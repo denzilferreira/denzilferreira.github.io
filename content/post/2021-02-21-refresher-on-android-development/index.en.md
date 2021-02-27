@@ -21,4 +21,12 @@ I've been developing Android applications for research since 2010. I started on 
 
 ## Kotlin
 
-It is an understatement to say that [Kotlin](https://kotl.in) is just another alternative language. Kotlin is a very powerful, yet stupidly simple language to learn. 
+It is an understatement to say that [Kotlin](https://kotl.in) is just another alternative language. Kotlin is a very powerful, yet stupidly simple language to learn.
+
+{{<mermaid>}}
+graph TB
+A(JVM Runtime) --> B[Java Heap]
+A(JVM Runtime) --> C[Class loading]
+A(JVM Runtime) --> D[JIT Compilation]
+A(JVM Runtime) --> E[Java Threads]
+{{</mermaid>}}
