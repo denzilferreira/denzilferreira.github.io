@@ -1,10 +1,10 @@
 ---
-title: Refresher on Android development
+title: Android Develoment in 2021
 author: Denzil Ferreira
 date: '2021-02-21'
 slug: []
 categories:
-  - Software Dev
+  - Android
 tags:
   - android
   - mobile
