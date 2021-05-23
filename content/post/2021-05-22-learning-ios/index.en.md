@@ -40,13 +40,8 @@ var password:String? //default nil, i.e., null in Apple jargon
 > Note: to access the value of __password__ above, you need to use **!**, e.g.:
 
 ``` Swift
+password="1234"
 print(password!) //print the assigned value of the password. 
-
-//Multiple lines comments look like this
-/*  
-  In this case, it will be give you an error 
-  because it's a String? and has no value
-*/
 ```
 
 Constants are defined with __let__:
@@ -140,3 +135,22 @@ elements.insert("Bob")
 elements.insert("Bob")
 ```
 > **elements** will only contain **Alice and Bob**, even thought we inserted Bob twice.
+
+#### Dictionary
+
+A key-indexable collection of items.
+
+``` Swift
+var coins = [String:String]
+elements["EUR"] = "Euro"
+elements["USD"] = "US Dollar"
+print(elements["EUR"]!) //prints "Euro"
+```
+
+## Functions
+
+``` Swift
+func sum(number1:Int, number2:Int) -> Int {
+  return number1 + number2
+}
+```
