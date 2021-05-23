@@ -1,5 +1,5 @@
 ---
-title: Learning iOS
+title: Learning Swift
 author: Denzil ferreira
 date: '2021-05-22'
 slug: []
@@ -11,7 +11,7 @@ tags:
   - iOS
 ---
 
-My notes while studying Swift and iOS programming.
+My notes while studying Swift and iOS programming. Some of these are familiar and shared in modern languages.
 
 # Swift
 
@@ -84,7 +84,7 @@ var intDouble = Int(doubleNumber) //this will be 1 - we lose precision
 ``` Swift
 //Different ways to count from 1 to 10
 
-for index in 1...10 {
+for index in 1...10 { //In Kotlin we use ..
   print("Number: \(index)")
 }
 
@@ -101,6 +101,42 @@ repeat {
 } while count <= 10
 ```
 
-> To stop a loop: **break**;
-> To skip a loop: **continue**
+> To stop a loop: **break** and to skip an iteration of a loop: **continue**
 
+## Array, Set, Dictionary
+
+#### Array
+
+A collection of items.
+
+``` Swift
+var items = [1,2,3,4] //array of Int
+for item in items {
+  print("Item: \(item)")
+}
+
+//Swift is 0-indexed. e.g., modify the second (index = 1) element to 5.
+items[1] = 5
+
+//e.g., an empty mutable array of Int
+var items = [Int]()
+items.append(1) //items contains [1]
+items.append(2) //items contains [1,2]
+
+//e.g., an empty mutable array of any type
+var mixed = [Any]()
+mixed.append(1)
+mixed.append("Hello") //mixed contains [1,"Hello"]
+```
+
+#### Set
+
+A collection of unique items.
+
+``` Swift
+var elements = Set<String>()
+elements.insert("Alice")
+elements.insert("Bob")
+elements.insert("Bob")
+```
+> **elements** will only contain **Alice and Bob**, even thought we inserted Bob twice.
