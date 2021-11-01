@@ -41,7 +41,7 @@ params:
       title: e-mail
       url: mailto:ferreiradenzil@gmail.com
   title: Denzil Ferreira
-  disableThemeSwitcher = true
+  disableThemeSwitcher: true
 menu:
   main:
     - identifier: home
