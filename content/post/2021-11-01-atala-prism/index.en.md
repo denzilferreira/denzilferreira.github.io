@@ -35,3 +35,15 @@ did:example:123456789abcdefghi
 Can be *issued by* an **Issuer**, identified by a DID. Can be *issued to* a **Holder**, the subject, identified by a DID. Can be passed to and verified by a **Verifier** and it is specified by WWWC: https://w3c.github.io/vc-data-model
 
 e.g., a university (Issuer) provides to a student (Holder) a degree certificate (Credential). This credential can be verified (using a Verifier) by an employer.
+
+### Idea for Atala PRISM project
+
+A **search engine for employers to find certified professionals** for a role (vertical: career/reputation). The Holder is the job seeker/professional. The credentials that would be issued could be:
+
+- Proof of Employment at company Xpto
+- Recommendation from another verified user
+- Proof of Degree
+- Proof of certification taken by AWS/Azure/Google Cloud/etc
+- ...
+
+The Issuers are the companies/universities/training entities. The Verifier is the search engine, used by employers.
