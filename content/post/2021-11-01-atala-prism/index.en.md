@@ -47,3 +47,19 @@ A **search engine for employers to find certified professionals** for a role (ve
 - ...
 
 The Issuers are the companies/universities/training entities. The Verifier is the search engine, used by employers.
+
+# Lecture 2
+
+[![Lecture 2](https://img.youtube.com/vi/KjWORZnbllE/0.jpg)](https://www.youtube.com/watch?v=KjWORZnbllE)
+
+### DID Operations
+
+- Read: - DID Resolution, retrieving a DID document
+- Create
+- Update
+- Deactivate
+
+### Types of DIDs
+
+- **Long Form**: not stored in the blockchain, document payload is stored in the DID
+- **Canonical**: stored in the blockchain
