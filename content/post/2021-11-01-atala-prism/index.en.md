@@ -77,7 +77,7 @@ The **Issuers** are the companies/universities/training entities. The **Verifier
 -   **If you want to issue a certificate,** the Issuer's DID issue credentials need to be stored on the blockchain.
 -   **If you want to revoke a credential,** the Issuer's DID revoke credential need to be stored on the blockchain.
 -   **If you are the recipient/Holder of a credential,** then it's not necessarily required that your Holder DID is stored on the blockchain.
--   **If we read an Long Form DID**, for Verifiers, if we find the DID in the blockchain, that is the source of truth and overrides the document payload that is stored in the DID itself.
+-   **If we read an Long Form DID**, for Verifiers, if we find the DID in the blockchain, that is the source of truth and overrides the document payload that is stored on the DID itself.
 
 ### DID document
 
@@ -128,7 +128,7 @@ fun main(args: Array<String>) {
 }
 ```
 
-## Reading a DID
+## Reading a DID from blockchain
 
 PRISM SDK uses a Node backend API to interact with the blockchain ([ppp.atalaprism.io](https://ppp.atalaprism.io)). In this example, we search for a DID using the URI.
 
@@ -157,4 +157,198 @@ fun main(args: Array<String>) {
 }
 ```
 
-When interacting with the blockchain, we need to wait for the result from the blockchain (*runBlocking*). The model variable contains the public keys of this DID (*publicKeys*) and if there is a document, we can retrieve it (*didDataModel*).
+When interacting with the blockchain, the operations are asynchronous, thus we need to wait for the result from the blockchain (*runBlocking*) before continueing. The model variable contains the public keys of this DID (*publicKeys*) and if there is a document, we can retrieve it (*didDataModel*).
+
+> **If the DID we are retrieving is Long Form**, and it's not published on the blockchain, we get the document that is embedded on the DID document payload. If published on the blockchain, we ALWAYS get the blockchain document.
+>
+> **If the DID we are retrieving is Canonical**, then the nodeAuthApi will only return the blockchain document if it's found.
+
+## Publishing a DID to the blockchain
+
+Publishing a DID in Atala PRISM blockchain can take a while because we need to wait for a few confirmations (4-6) to guarantee the blockchain has recorded your entry. To do this, a couple of utility functions: *waitUntilConfirmed* and *transactionId.*
+
+The **waitUntilConfirmed** runs a loop every 10 seconds to check whether we have a **confirmed and applied** or **confirmed and rejected** operation on the Prism blockchain.
+
+``` Kotlin
+// Waits until an operation is confirmed by the Cardano network.
+// NOTE: Confirmation doesn't necessarily mean that operation was applied.
+// For example, it could be rejected because of an incorrect signature or other reasons.
+@PrismSdkInternal
+fun waitUntilConfirmed(nodePublicApi: NodePublicApi, operationId: AtalaOperationId) {
+    var tid = ""
+    var status = runBlocking {
+            nodePublicApi.getOperationStatus(operationId)
+    }
+    while (status != AtalaOperationStatus.CONFIRMED_AND_APPLIED &&
+        status != AtalaOperationStatus.CONFIRMED_AND_REJECTED
+    ) {
+        println("Current operation status: ${AtalaOperationStatus.asString(status)}")
+        if (tid.isNullOrEmpty()) {
+            tid = transactionId(operationId)
+            if (!tid.isNullOrEmpty()) {
+                println("Transaction id: $tid")
+                println("Track the transaction in:\n- https://explorer.cardano-testnet.iohkdev.io/en/transaction?id=$tid")
+            }
+        }
+
+        Thread.sleep(10000)
+        status = runBlocking {
+            nodePublicApi.getOperationStatus(operationId)
+        }
+    }
+}
+```
+
+To get the Cardano transaction ID from an Atala operation ID, we use *transactionId*:
+
+``` Kotlin
+@PrismSdkInternal
+fun transactionId(oid: AtalaOperationId): String {
+    val node = NodeServiceCoroutine.Client(GrpcClient(grpcOptions))
+    val response = runBlocking {
+            node.GetOperationInfo(GetOperationInfoRequest(ByteArr(oid.value())))
+        }
+    return response.transactionId
+}
+```
+
+Now, to publish a DID, we'll need the encoded seed file. The encoded seed file is used to restore the master key and DID that we used in [creating a DID](#creating-a-did). In this example, the main function uses two arguments, one for where the seed file is located and the second to where we keep a record of the Atala operation Ids (val *hashFile*).
+
+> To perform an operation in a DID, you need to know the ID of the previous operation. This is to support concurrency and we can have two agents trying to modify the same DID at the same time.
+
+``` Kotlin
+@PrismSdkInternal
+fun main(args: Array<String>) {
+    val seedFile = try { args[0] } catch (e: Exception) { throw Exception("expected seed file path as first argument") }
+    val hashFile = try { args[1] } catch (e: Exception) { throw Exception("expected hash file path as second argument") }
+    val seed = File(seedFile).readBytes()
+    println("read seed from file $seedFile")
+
+    val masterKeyPair = KeyGenerator.deriveKeyFromFullPath(seed, 0, PrismKeyType.MASTER_KEY, 0)
+    val unpublishedDid = PrismDid.buildLongFormFromMasterPublicKey(masterKeyPair.publicKey)
+
+    val didCanonical = unpublishedDid.asCanonical().did
+    val didLongForm = unpublishedDid.did
+
+    println("canonical: $didCanonical")
+    println("long form: $didLongForm")
+    println()
+
+    println("publishing DID...")
+    var nodePayloadGenerator = NodePayloadGenerator(
+            unpublishedDid,
+            mapOf(PrismDid.DEFAULT_MASTER_KEY_ID to masterKeyPair.privateKey))
+    val createDidInfo = nodePayloadGenerator.createDid()
+    val createDidOperationId = runBlocking {
+            nodeAuthApi.createDid(
+                createDidInfo.payload,
+                unpublishedDid,
+                PrismDid.DEFAULT_MASTER_KEY_ID)
+        }
+
+    println(
+        """
+        - Sent a request to create a new DID to PRISM Node.
+        - The transaction can take up to 10 minutes to be confirmed by the Cardano network.
+        - Operation identifier: ${createDidOperationId.hexValue()}
+        """.trimIndent())
+    println()
+    waitUntilConfirmed(nodeAuthApi, createDidOperationId)
+
+    val status = runBlocking { nodeAuthApi.getOperationStatus(createDidOperationId) }
+    require(status == AtalaOperationStatus.CONFIRMED_AND_APPLIED) {
+        "expected publishing to be applied"
+    }
+
+    println("DID published")
+
+    val hash = createDidInfo.operationHash.hexValue
+    println("hash: $hash")
+    File(hashFile).writeText(hash)
+    println("wrote oid hash to file $hashFile")
+    println()
+}
+```
+
+To publish a DID, we need to create a NodePayload, which takes an unpublished DID and a map of all the private keys for the operations we want to support on the DID.
+
+``` Kotlin
+...
+var nodePayloadGenerator = NodePayloadGenerator(
+            unpublishedDid,
+            mapOf(PrismDid.DEFAULT_MASTER_KEY_ID to masterKeyPair.privateKey))
+...
+```
+
+We should always have the master key ID, otherwise no-one will be authorised to change this DID in the future. We can have the revocation and issuance private keys as well so we can use this DID to issue and revoke credentials.
+
+## Updating a DID
+
+We will update here the list of private keys associated with a DID. When restoring the DID from the seed file, we this time create an *issuingKeyPair* so we can use it to issue credentials as well.
+
+``` Kotlin
+@PrismSdkInternal
+fun main(args: Array<String>) {
+    val seedFile = try { args[0] } catch (e: Exception) { throw Exception("expected seed file path as first argument") }
+    val oldHashFile = try { args[1] } catch (e: Exception) { throw Exception("expected old hash file path as second argument") }
+    val newHashFile = try { args[2] } catch (e: Exception) { throw Exception("expected new hash file path as third argument") }
+
+    val seed = File(seedFile).readBytes()
+    println("read seed from file $seedFile")
+    val oldHash = Sha256Digest.fromHex(File(oldHashFile).readText())
+    println("read old hash from $oldHashFile: ${oldHash.hexValue}")
+
+    val masterKeyPair = KeyGenerator.deriveKeyFromFullPath(seed, 0, PrismKeyType.MASTER_KEY, 0)
+    val issuingKeyPair = KeyGenerator.deriveKeyFromFullPath(seed, 0, PrismKeyType.ISSUING_KEY, 0)
+    val unpublishedDid = PrismDid.buildLongFormFromMasterPublicKey(masterKeyPair.publicKey)
+
+    val didCanonical = unpublishedDid.asCanonical().did
+    val didLongForm = unpublishedDid.did
+
+    println("canonical: $didCanonical")
+    println("long form: $didLongForm")
+    println()
+
+    println("updating DID...")
+    var nodePayloadGenerator = NodePayloadGenerator(
+            unpublishedDid,
+            mapOf(PrismDid.DEFAULT_MASTER_KEY_ID to masterKeyPair.privateKey))
+    val issuingKeyInfo = PrismKeyInformation(
+            PrismDid.DEFAULT_ISSUING_KEY_ID,
+            PrismKeyType.ISSUING_KEY,
+            issuingKeyPair.publicKey)
+    val updateDidInfo = nodePayloadGenerator.updateDid(
+            previousHash = oldHash,
+            masterKeyId = PrismDid.DEFAULT_MASTER_KEY_ID,
+            keysToAdd = arrayOf(issuingKeyInfo))
+    val updateDidOperationId = runBlocking {
+            nodeAuthApi.updateDid(
+                payload = updateDidInfo.payload,
+                did = unpublishedDid.asCanonical(),
+                masterKeyId = PrismDid.DEFAULT_MASTER_KEY_ID,
+                previousOperationHash = oldHash,
+                keysToAdd = arrayOf(issuingKeyInfo),
+                keysToRevoke = arrayOf())
+        }
+
+    println(
+        """
+        - Sent a request to update the DID to PRISM Node.
+        - The transaction can take up to 10 minutes to be confirmed by the Cardano network.
+        - Operation identifier: ${updateDidOperationId.hexValue()}
+        """.trimIndent())
+    println()
+    waitUntilConfirmed(nodeAuthApi, updateDidOperationId)
+
+    val status = runBlocking { nodeAuthApi.getOperationStatus(updateDidOperationId) }
+    require(status == AtalaOperationStatus.CONFIRMED_AND_APPLIED) {
+        "expected updating to be applied"
+    }
+
+    println("DID updated")
+    val newHash = updateDidInfo.operationHash.hexValue
+    File(newHashFile).writeText(newHash)
+    println("wrote new hash $newHash to file $newHashFile")
+    println()
+}
+```
