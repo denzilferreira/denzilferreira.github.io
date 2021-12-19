@@ -55,7 +55,7 @@ The **Issuers** are the companies/universities/training entities. The **Verifier
 
 > Specified in: <https://w3c-ccg.github.io/did-resolution/>
 
--   **Read**: - DID Resolution, resolve and retrieving a [DID payload](#did-document)
+-   **Read**: - DID Resolution, resolve and retrieving a [DID document](#did-document)
 -   **Create** - create a DID with payload
 -   **Update** - update a DID payload
 -   **Deactivate** - in practice we render the DID payload useless
@@ -81,14 +81,49 @@ The **Issuers** are the companies/universities/training entities. The **Verifier
 
 ### DID document
 
-This is a JSON-based document. Contains:
+In PRISM, the DID payload contains the list of public keys and their roles:
 
--   Id
+-   Id: String URI of the DID
 
 -   publicKeys
 
     -   id
 
-    -   usage - one of master, issuing, revocation
+    -   usage: e.g., master, issuing, revocation
 
-    -   ecKeyData
+        -   **master**: modify, update and perform operations on the DID itself
+
+        -   **issuing**: to create new credentials
+
+        -   **revocation**: to revoke credentials
+
+    -   ecKeyData: elliptic curve encrypted key
+
+> A DID **Controller** contains the private master key that identifies as owner of this DID document. Only they can update this DID document.
+
+**You need PRISM SDK access to work with Atala PRISM. Since I joined the cohort, I have access to it. This will be open to everyone once IOHK works out the documentation.**
+
+## Creating a DID
+
+To create DIDs, you first need a seed and a master key. The master key allows you to create DIDs, derived from the same seed passphrase. In this example, the derived seed (random mnemonic + "passphrase") is stored into a file, which we provided as argument to the main function. This allows us to issue a master key and then as many DID we want. In this example, we create an unpublished DID (off the blockchain - Long Form DID).
+
+``` Kotlin
+@PrismSdkInternal
+fun main(args: Array<String>) {
+    val seedFile = try { args[0] } catch (e: Exception) {throw Exception("expected seed file path as argument")}
+    val seed = KeyDerivation.binarySeed(KeyDerivation.randomMnemonicCode(), "passphrase")
+    File(seedFile).writeBytes(seed)
+    println("wrote seed to file $seedFile")
+    println()
+
+    val masterKeyPair = KeyGenerator.deriveKeyFromFullPath(seed, 0, PrismKeyType.MASTER_KEY, 0)
+    val unpublishedDid = PrismDid.buildLongFormFromMasterPublicKey(masterKeyPair.publicKey)
+
+    val didCanonical = unpublishedDid.asCanonical().did
+    val didLongForm = unpublishedDid.did
+
+    println("canonical: $didCanonical")
+    println("long form: $didLongForm")
+    println()
+}
+```
