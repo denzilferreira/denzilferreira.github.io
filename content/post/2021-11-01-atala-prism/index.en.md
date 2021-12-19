@@ -157,4 +157,4 @@ fun main(args: Array<String>) {
 }
 ```
 
-The model variable contains the public keys of this DID (*publicKeys*) and if there is a document, we can retrieve it (*didDataModel*).
+When interacting with the blockchain, we need to wait for the result from the blockchain (*runBlocking*). The model variable contains the public keys of this DID (*publicKeys*) and if there is a document, we can retrieve it (*didDataModel*).
