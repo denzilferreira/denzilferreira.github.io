@@ -127,3 +127,34 @@ fun main(args: Array<String>) {
     println()
 }
 ```
+
+## Reading a DID
+
+PRISM SDK uses a Node backend API to interact with the blockchain ([ppp.atalaprism.io](https://ppp.atalaprism.io)). In this example, we search for a DID using the URI.
+
+``` Kotlin
+val environment = "ppp.atalaprism.io"
+val grpcOptions = GrpcOptions("https", environment, 50053)
+val nodeAuthApi = NodeAuthApiImpl(grpcOptions)
+
+@PrismSdkInternal
+fun main(args: Array<String>) {
+    if (args.size != 1) {
+        throw Exception("expected exactly one command line argument, the DID")
+    }
+
+    val did = try { Did.fromString(args[0]) } catch (e: Exception) { throw Exception("illegal DID: ${args[0]}") }
+    val prismDid = try { PrismDid.fromDid(did) } catch (e: Exception) { throw Exception("not a Prism DID: $did") }
+
+    println("trying to retrieve document for $did")
+    try {
+        val model = runBlocking { nodeAuthApi.getDidDocument(prismDid) }
+        println(model.publicKeys.size)
+        println(model.didDataModel)
+    } catch (e: Exception) {
+        println("unknown prism DID")
+    }
+}
+```
+
+The model variable contains the public keys of this DID (*publicKeys*) and if there is a document, we can retrieve it (*didDataModel*).
