@@ -1,5 +1,5 @@
 ---
-title: "Attending Atala Prism Pioneers"
+title: "Atala Prism Pioneers - Lecture 1 & 2"
 author: "Denzil Ferreira"
 date: '2021-11-01'
 slug: []
@@ -352,3 +352,5 @@ fun main(args: Array<String>) {
     println()
 }
 ```
+
+The NodePayloadGenerator will create a payload of operations on the Prism blockchain and then updateDid function will package the payload for the Node API. The Node API updateDid function can both add and revoke keys.
