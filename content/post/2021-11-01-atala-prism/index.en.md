@@ -107,7 +107,7 @@ In PRISM, the DID payload contains the list of public keys and their roles:
 
 To create DIDs, you first need a seed and a master key. The master key allows you to create DIDs, derived from the same seed passphrase. In this example, the derived seed (random mnemonic + "passphrase") is stored into a file, which we provided as argument to the main function. This allows us to issue a master key and then as many DID we want. In this example, we create an unpublished DID (off the blockchain - Long Form DID).
 
-``` Kotlin
+``` kotlin
 @PrismSdkInternal
 fun main(args: Array<String>) {
     val seedFile = try { args[0] } catch (e: Exception) {throw Exception("expected seed file path as argument")}
@@ -132,7 +132,7 @@ fun main(args: Array<String>) {
 
 PRISM SDK uses a Node backend API to interact with the blockchain ([ppp.atalaprism.io](https://ppp.atalaprism.io)). In this example, we search for a DID using the URI.
 
-``` Kotlin
+``` kotlin
 val environment = "ppp.atalaprism.io"
 val grpcOptions = GrpcOptions("https", environment, 50053)
 val nodeAuthApi = NodeAuthApiImpl(grpcOptions)
@@ -169,7 +169,7 @@ Publishing a DID in Atala PRISM blockchain can take a while because we need to w
 
 The **waitUntilConfirmed** runs a loop every 10 seconds to check whether we have a **confirmed and applied** or **confirmed and rejected** operation on the Prism blockchain.
 
-``` Kotlin
+``` kotlin
 // Waits until an operation is confirmed by the Cardano network.
 // NOTE: Confirmation doesn't necessarily mean that operation was applied.
 // For example, it could be rejected because of an incorrect signature or other reasons.
@@ -201,7 +201,7 @@ fun waitUntilConfirmed(nodePublicApi: NodePublicApi, operationId: AtalaOperation
 
 To get the Cardano transaction ID from an Atala operation ID, we use *transactionId*:
 
-``` Kotlin
+``` kotlin
 @PrismSdkInternal
 fun transactionId(oid: AtalaOperationId): String {
     val node = NodeServiceCoroutine.Client(GrpcClient(grpcOptions))
@@ -216,7 +216,7 @@ Now, to publish a DID, we'll need the encoded seed file. The encoded seed file i
 
 > To perform an operation in a DID, you need to know the ID of the previous operation. This is to support concurrency and we can have two agents trying to modify the same DID at the same time.
 
-``` Kotlin
+``` kotlin
 @PrismSdkInternal
 fun main(args: Array<String>) {
     val seedFile = try { args[0] } catch (e: Exception) { throw Exception("expected seed file path as first argument") }
@@ -272,7 +272,7 @@ fun main(args: Array<String>) {
 
 To publish a DID, we need to create a NodePayload, which takes an unpublished DID and a map of all the private keys for the operations we want to support on the DID.
 
-``` Kotlin
+``` kotlin
 ...
 var nodePayloadGenerator = NodePayloadGenerator(
             unpublishedDid,
@@ -286,7 +286,7 @@ We should always have the master key ID, otherwise no-one will be authorised to 
 
 We will update here the list of private keys associated with a DID. When restoring the DID from the seed file, we this time create an *issuingKeyPair* so we can use it to issue credentials as well.
 
-``` Kotlin
+``` kotlin
 @PrismSdkInternal
 fun main(args: Array<String>) {
     val seedFile = try { args[0] } catch (e: Exception) { throw Exception("expected seed file path as first argument") }
