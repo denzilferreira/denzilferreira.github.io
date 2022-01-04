@@ -1,5 +1,5 @@
 ---
-title: "Atala Prism Pioneers - Lecture 1 & 2"
+title: "Atala Prism Pioneers - Lecture Notes"
 author: "Denzil Ferreira"
 date: '2021-11-01'
 slug: []
@@ -11,11 +11,11 @@ Categories: []
 DisableComments: no
 ---
 
-These are my lecture notes from attending Atala Prism Pioneers program, by IOHK and taught by Dr. Lars Brünjes.
+These are my lecture notes from attending Atala Prism Pioneers program, by IOHK and taught by Dr. Lars Brünjes. This was the second iteration of the Pioneers program and I'm glad I took the effort to attend and complete it.
 
 # Lecture 1
 
-[![Lecture 1](https://img.youtube.com/vi/9MoWZ_dHqpE/0.jpg)](https://www.youtube.com/watch?v=9MoWZ_dHqpE)
+[![Lecture 1](https://img.youtube.com/vi/9MoWZ_dHqpE/0.jpg "Lecture 1")](https://www.youtube.com/watch?v=9MoWZ_dHqpE)
 
 ## Concepts
 
@@ -49,7 +49,7 @@ The **Issuers** are the companies/universities/training entities. The **Verifier
 
 # Lecture 2
 
-[![Lecture 2](https://img.youtube.com/vi/KjWORZnbllE/0.jpg)](https://www.youtube.com/watch?v=KjWORZnbllE)
+[![Lecture 2](https://img.youtube.com/vi/KjWORZnbllE/0.jpg "Lecture 2")](https://www.youtube.com/watch?v=KjWORZnbllE)
 
 ### DID Operations
 
@@ -354,3 +354,111 @@ fun main(args: Array<String>) {
 ```
 
 The NodePayloadGenerator will create a payload of operations on the Prism blockchain and then updateDid function will package the payload for the Node API. The Node API updateDid function can both add and revoke keys.
+
+# Lecture 3
+
+[![Lecture 3](https://img.youtube.com/vi/8SiFcDy9XbA/0.jpg "Lecture 3")](https://www.youtube.com/watch?v=8SiFcDy9XbA)
+
+When we read a DID, the PrismDidDataModel contains:
+
+-   didDataModel
+-   publicKeys: array with **PrismKeyInformation**
+
+## PrismKeyInformation
+
+The keys contain two pieces of information that we can use to determine the validity of a DID:
+
+-   **addedOn**: when the key was added to the DID. If unpublished, it's **null**
+-   **revokedOn**: when the key was revoked on the DID. If unpublished, it's **null**
+
+## Deactivating a DID
+
+In practice, on PRISM to deactivate a DID, you revoke a master key of a DID to effectively deactivate it. For example, keysToRevoke below revokes both the master and issuing keys:
+
+``` kotlin
+@PrismSdkInternal
+fun main(args: Array<String>) {
+    val seedFile = try { args[0] } catch (e: Exception) { throw Exception("expected seed file path as first argument") }
+    val oldHashFile = try { args[1] } catch (e: Exception) { throw Exception("expected old hash file path as second argument") }
+
+    val seed = File(seedFile).readBytes()
+    println("read seed from file $seedFile")
+    val oldHash = Sha256Digest.fromHex(File(oldHashFile).readText())
+    println("read old hash from $oldHashFile: ${oldHash.hexValue}")
+
+    val masterKeyPair = KeyGenerator.deriveKeyFromFullPath(seed, 0, PrismKeyType.MASTER_KEY, 0)
+    val unpublishedDid = PrismDid.buildLongFormFromMasterPublicKey(masterKeyPair.publicKey)
+
+    val didCanonical = unpublishedDid.asCanonical().did
+    val didLongForm = unpublishedDid.did
+
+    println("canonical: $didCanonical")
+    println("long form: $didLongForm")
+    println()
+
+    println("deactivating DID...")
+    var nodePayloadGenerator = NodePayloadGenerator(
+            unpublishedDid,
+            mapOf(PrismDid.DEFAULT_MASTER_KEY_ID to masterKeyPair.privateKey))
+    val updateDidInfo = nodePayloadGenerator.updateDid(
+            previousHash = oldHash,
+            masterKeyId = PrismDid.DEFAULT_MASTER_KEY_ID,
+            keysToRevoke = arrayOf(PrismDid.DEFAULT_MASTER_KEY_ID, PrismDid.DEFAULT_ISSUING_KEY_ID))
+    val updateDidOperationId = runBlocking {
+            nodeAuthApi.updateDid(
+                payload = updateDidInfo.payload,
+                did = unpublishedDid.asCanonical(),
+                masterKeyId = PrismDid.DEFAULT_MASTER_KEY_ID,
+                previousOperationHash = oldHash,
+                keysToAdd = arrayOf(),
+                keysToRevoke = arrayOf(PrismDid.DEFAULT_MASTER_KEY_ID, PrismDid.DEFAULT_ISSUING_KEY_ID))
+        }
+
+    println(
+        """
+        - Sent a request to deactivate the DID to PRISM Node.
+        - The transaction can take up to 10 minutes to be confirmed by the Cardano network.
+        - Operation identifier: ${updateDidOperationId.hexValue()}
+        """.trimIndent())
+    println()
+    waitUntilConfirmed(nodeAuthApi, updateDidOperationId)
+
+    val status = runBlocking { nodeAuthApi.getOperationStatus(updateDidOperationId) }
+    require(status == AtalaOperationStatus.CONFIRMED_AND_APPLIED) {
+        "expected updating to be applied"
+    }
+
+    println("DID deactivated")
+    println()
+}
+```
+
+## Verified Credentials
+
+-   Issued by an **Issuer**, identified by a DID
+
+-   Issued to a **Holder**, the subject, identified by a DID
+
+-   Can be passed to and verified by a **Verifier**
+
+Specified by WWWC at: <https://w3c.github.io/vc-data-model/>
+
+Credentials in PRISM are also known as "claims" in the WWWC verified credentials model, e.g.:
+
+[![A basic claim expressing that Pat is an alumni of Example University](https://w3c.github.io/vc-data-model/diagrams/claim-example.svg)](https://w3c.github.io/vc-data-model/diagrams/claim-example.svg)
+
+In PRISM, these are represented with **CredentialClaim**
+
+-   subjectDid: PrismDid
+-   content: Json
+
+``` kotlin
+val credentialClaim = CredentialClaim(
+            subjectDid = holderUnpublishedDid,
+            content = JsonObject(mapOf(
+                    Pair("name", JsonPrimitive("Denzil Ferreira")),
+                    Pair("degree", JsonPrimitive("Doctor of Computer Science")),
+                    Pair("year", JsonPrimitive(2011)))))
+```
+
+Holder DIDs do not need to be published on the blockchain. Only Issuer DIDs are required to be on the PRISM blockchain.
