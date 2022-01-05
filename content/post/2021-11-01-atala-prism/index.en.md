@@ -436,9 +436,7 @@ fun main(args: Array<String>) {
 ## Verified Credentials
 
 -   Issued by an **Issuer**, identified by a DID
-
 -   Issued to a **Holder**, the subject, identified by a DID
-
 -   Can be passed to and verified by a **Verifier**
 
 Specified by WWWC at: <https://w3c.github.io/vc-data-model/>
@@ -449,8 +447,8 @@ Credentials in PRISM are also known as "claims" in the WWWC verified credentials
 
 In PRISM, these are represented with **CredentialClaim**
 
--   subjectDid: PrismDid
--   content: Json
+-   **subjectDid**: PrismDid
+-   **content**: Json - This can contain JsonPrimitives (strings, numbers) or JsonArray for collections of other JsonObjects
 
 ``` kotlin
 val credentialClaim = CredentialClaim(
@@ -461,4 +459,31 @@ val credentialClaim = CredentialClaim(
                     Pair("year", JsonPrimitive(2011)))))
 ```
 
-Holder DIDs do not need to be published on the blockchain. Only Issuer DIDs are required to be on the PRISM blockchain.
+A claim to be verified, and therefore considered a verified credential, the claim needs to be signed by an Issuer that you trust and published on the blockchain. The Issuer can sign a claim like so:
+
+``` kotlin
+
+val issuerNodePayloadGenerator = NodePayloadGenerator(
+            issuerUnpublishedDid,
+            mapOf(PrismDid.DEFAULT_ISSUING_KEY_ID to issuerIssuingKeyPair.privateKey))
+
+    val issueCredentialsInfo = issuerNodePayloadGenerator.issueCredentials(
+            PrismDid.DEFAULT_ISSUING_KEY_ID,
+            arrayOf(credentialClaim))
+            
+    val holderSignedCredential = issueCredentialsInfo.credentialsAndProofs.first().signedCredential
+
+```
+
+We first create a payload with the Issuer DID and then issue a new credential that is signed with the Issuer's issuing key. This will commit the credential to the blockchain, since if an Issuer DID wants to issue credentials, these need to be stored there.
+
+### Reading and Validating a credential signature
+
+``` kotlin
+
+val credentialContent = holderSignedCredential.content
+holderSignedCredential.isValidSignature(issuerIssuingKeyPair.publicKey)
+
+```
+
+We can validate whether the credential/claim has a valid issuing key. This guarantees that the credential comes from the Issuer, and was issued by the Issuer DID and therefore is valid and verified.
