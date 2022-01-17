@@ -462,7 +462,6 @@ val credentialClaim = CredentialClaim(
 A claim to be verified, and therefore considered a verified credential, the claim needs to be signed by an Issuer that you trust and published on the blockchain. The Issuer can sign a claim like so:
 
 ``` kotlin
-
 val issuerNodePayloadGenerator = NodePayloadGenerator(
             issuerUnpublishedDid,
             mapOf(PrismDid.DEFAULT_ISSUING_KEY_ID to issuerIssuingKeyPair.privateKey))
@@ -472,7 +471,6 @@ val issuerNodePayloadGenerator = NodePayloadGenerator(
             arrayOf(credentialClaim))
             
     val holderSignedCredential = issueCredentialsInfo.credentialsAndProofs.first().signedCredential
-
 ```
 
 We first create a payload with the Issuer DID and then issue a new credential that is signed with the Issuer's issuing key. This will commit the credential to the blockchain, since if an Issuer DID wants to issue credentials, these need to be stored there.
@@ -480,10 +478,36 @@ We first create a payload with the Issuer DID and then issue a new credential th
 ### Reading and Validating a credential signature
 
 ``` kotlin
-
 val credentialContent = holderSignedCredential.content
 holderSignedCredential.isValidSignature(issuerIssuingKeyPair.publicKey)
-
 ```
 
 We can validate whether the credential/claim has a valid issuing key. This guarantees that the credential comes from the Issuer, and was issued by the Issuer DID and therefore is valid and verified.
+
+## Trust Registries/Framework
+
+One approach to SSI is to use the Trust Registry model, where a Governance Authority is responsible for managing the DIDs. For example, an Issuer identify can be verified from the trust registry. An authentic verifier is listed in a trust registry, and the Holder provides their credentials to verifiers which then confirm the validity and authenticity of the credential.
+
+{{<mermaid>}} 
+graph TD 
+A(Issuer) -->|certifies| B(Holder) 
+B(Holder) -->|credentials presented| C(Verifier) 
+B(Holder) -->|uses| D[Trust Registry] 
+C(Verifier) -->|listed in, uses| D[Trust Registry] 
+A(Issuer) -->|listed in| D[Trust Registry] 
+E[Governance Authority] -->|manages| D[Trust Registry] 
+F[Governance Framework] --> E[Governance Authority] 
+{{</mermaid>}}
+
+**Things to keep in mind:**
+
+-   Issuer: what credentials types do you need to issue and certify?
+-   Holder: what credentials should be presented to verifiers?
+
+> Trust Registries/Framework is an area of SSI that is still under development worldwide and is prone to change in the future.
+
+## Trust Framework Worksheet by Tony Rose
+
+![Trust frameworks worksheet](images/atala-trust-framework.png)
+
+
