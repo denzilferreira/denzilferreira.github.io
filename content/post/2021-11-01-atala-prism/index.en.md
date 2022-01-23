@@ -510,4 +510,149 @@ F[Governance Framework] --> E[Governance Authority]
 
 ![Trust frameworks worksheet](images/atala-trust-framework.png)
 
+# Lecture 4
 
+[![Lecture 4](https://img.youtube.com/vi/XnH6S2sazys/0.jpg "Lecture 4")](https://www.youtube.com/watch?v=XnH6S2sazys)
+
+## Issuer DID
+
+We need to publish an Issuer DID to the blockchain if we want to create credentials. To effectively do this, an Issuer DID needs:
+
+- MASTER_KEY: used to identify the issuer
+- ISSUING_KEY: used to issue credentials
+- REVOCATION_KEY: used to revoke credentials
+
+**To create an Issuer DID locally:**
+
+```kotlin
+val issuerSeed = KeyDerivation.binarySeed(KeyDerivation.randomMnemonicCode(), "passphrase")
+    File(seedFile).writeBytes(issuerSeed)
+    println("wrote seed to file $seedFile")
+    println()
+
+    val issuerMasterKeyPair = KeyGenerator.deriveKeyFromFullPath(issuerSeed, 0, PrismKeyType.MASTER_KEY, 0)
+    val issuerIssuingKeyPair = KeyGenerator.deriveKeyFromFullPath(issuerSeed, 0, PrismKeyType.ISSUING_KEY, 0)
+    val issuerRevocationKeyPair = KeyGenerator.deriveKeyFromFullPath(issuerSeed, 0, PrismKeyType.REVOCATION_KEY, 0)
+    val issuerUnpublishedDid = PrismDid.buildExperimentalLongFormFromKeys(
+            issuerMasterKeyPair.publicKey,
+            issuerIssuingKeyPair.publicKey,
+            issuerRevocationKeyPair.publicKey)
+```
+
+**To publish the Issuer DID to the Atala PRISM blockchain:**
+
+```kotlin
+println("publishing issuer DID...")
+    var nodePayloadGenerator = NodePayloadGenerator(
+            issuerUnpublishedDid,
+            mapOf(
+                PrismDid.DEFAULT_MASTER_KEY_ID to issuerMasterKeyPair.privateKey,
+                PrismDid.DEFAULT_ISSUING_KEY_ID to issuerIssuingKeyPair.privateKey,
+                PrismDid.DEFAULT_REVOCATION_KEY_ID to issuerRevocationKeyPair.privateKey))
+    val createDidInfo = nodePayloadGenerator.createDid()
+    val createDidOperationId = runBlocking {
+            nodeAuthApi.createDid(
+                createDidInfo.payload,
+                issuerUnpublishedDid,
+                PrismDid.DEFAULT_MASTER_KEY_ID)
+        }
+
+    println(
+        """
+        - Sent a request to create a new DID to PRISM Node.
+        - The transaction can take up to 10 minutes to be confirmed by the Cardano network.
+        - Operation identifier: ${createDidOperationId.hexValue()}
+        """.trimIndent())
+    println()
+    waitUntilConfirmed(nodeAuthApi, createDidOperationId)
+
+    val status = runBlocking { nodeAuthApi.getOperationStatus(createDidOperationId) }
+    require(status == AtalaOperationStatus.CONFIRMED_AND_APPLIED) {
+        "expected publishing to be applied"
+    }
+
+    println("issuer DID published")
+```
+
+## Batch of credentials (one transaction with multiple credentials)
+
+We can issue a batch of several claims (i.e. credentials) on one transaction. In this example, different Holder DID will create a claim (per each name):
+
+```kotlin
+val names = arrayOf("Alice", "Bob", "Charlie")
+    val claims = mutableListOf<CredentialClaim>()
+    for (name in names) {
+        val holderSeed = KeyDerivation.binarySeed(KeyDerivation.randomMnemonicCode(), "passphrase")
+        val holderMasterKeyPair = KeyGenerator.deriveKeyFromFullPath(holderSeed, 0, PrismKeyType.MASTER_KEY, 0)
+        val holderUnpublishedDid = PrismDid.buildLongFormFromMasterPublicKey(holderMasterKeyPair.publicKey)
+
+        val holderDidCanonical = holderUnpublishedDid.asCanonical().did
+        val holderDidLongForm = holderUnpublishedDid.did
+
+        println("$name canonical: $holderDidCanonical")
+        println("$name long form: $holderDidLongForm")
+        println()
+
+        val credentialClaim = CredentialClaim(
+                subjectDid = holderUnpublishedDid,
+                content = JsonObject(mapOf(
+                        Pair("name", JsonPrimitive(name)),
+                        Pair("degree", JsonPrimitive("Atala Prism Pioneer")),
+                        Pair("year", JsonPrimitive(2021)))))
+
+        claims.add(credentialClaim)
+    }
+```
+
+Then the Issuer will publish these credentials to the blockchain in one transaction:
+
+```kotlin
+val nodePayloadGenerator = NodePayloadGenerator(
+            issuerUnpublishedDid,
+            mapOf(PrismDid.DEFAULT_ISSUING_KEY_ID to issuerIssuingKeyPair.privateKey))
+
+    val credentialsInfo = nodePayloadGenerator.issueCredentials(
+            PrismDid.DEFAULT_ISSUING_KEY_ID,
+            claims.toTypedArray())
+
+    println("batchId: ${credentialsInfo.batchId.id}")
+    for (info in credentialsInfo.credentialsAndProofs) {
+        println(" - ${info.signedCredential.hash().hexValue}")
+    }
+    println()
+
+    val issueCredentialsOperationId = runBlocking {
+            nodeAuthApi.issueCredentials(
+                credentialsInfo.payload,
+                issuerUnpublishedDid.asCanonical(),
+                PrismDid.DEFAULT_ISSUING_KEY_ID,
+                credentialsInfo.merkleRoot)
+        }
+
+    println(
+            """
+            - Sent a request to issue credentials to PRISM Node.
+            - The transaction can take up to 10 minutes to be confirmed by the Cardano network.
+            - Operation identifier: ${issueCredentialsOperationId.hexValue()}
+            """.trimIndent())
+    println()
+    waitUntilConfirmed(nodeAuthApi, issueCredentialsOperationId)
+
+    val status = runBlocking { nodeAuthApi.getOperationStatus(issueCredentialsOperationId) }
+    require(status == AtalaOperationStatus.CONFIRMED_AND_APPLIED) {
+        "expected credentials to be issued"
+    }
+
+    println("credentials issued")
+    println()
+```
+
+As before, we need to keep track of what was the last transaction ID (hex):
+
+```kotlin
+val hash = credentialsInfo.operationHash.hexValue
+    println("operation hash: $hash")
+    File(hashFile).writeText(hash)
+    println("wrote old hash to file $hashFile")
+    println()
+```
