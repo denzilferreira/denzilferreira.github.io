@@ -25,19 +25,19 @@ params:
   profilePicture: images/profile.jpg
   simpleAnalytics: {}
   socialIcons:
-    - icon: fab fa-linkedin
+    - icon: fa fa-linkedin
       title: LinkedIn
       url: https://www.linkedin.com/in/denzilferreira
-    - icon: fab fa-github
+    - icon: fa fa-github
       title: GitHub
       url: https://github.com/denzilferreira
-    - icon: fab fa-twitter
+    - icon: fa fa-twitter
       title: Twitter
       url: https://twitter.com/denzilferreira
-    - icon: fas fa-book-reader
+    - icon: fa fa-book
       title: Scholar
       url: https://scholar.google.fi/citations?user=d4rhcDAAAAAJ
-    - icon: fas fa-envelope
+    - icon: fa fa-envelope
       title: e-mail
       url: mailto:ferreiradenzil@gmail.com
   title: Denzil Ferreira
